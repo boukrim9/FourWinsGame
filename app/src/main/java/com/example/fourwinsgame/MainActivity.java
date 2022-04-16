@@ -9,6 +9,7 @@ import android.os.Bundle;
 
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -20,6 +21,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public Player activePlayer;
 
     public Player [][] board = new Player[7][6];
+
+    private TextView playerOneScore, playerTwoScore;
+
+    private int playerOneScoreCount, playerTwoScoreCount;
 
 
 
@@ -44,6 +49,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
+        int resourceID = getResources().getIdentifier("playerOneScore", "id", getPackageName());
+        playerOneScore = (TextView) findViewById(resourceID);
+
+        resourceID = getResources().getIdentifier("playerTwoScore", "id", getPackageName());
+        playerTwoScore = (TextView) findViewById(resourceID);
 
     }
 
@@ -51,11 +61,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
 
-
-
-
         Button button = (Button) view;
 
+        //click on empty space => do nothing
         if (button == null) {
             return;
         }
@@ -64,13 +72,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int column;
         String buttonId = getResources().getResourceEntryName(button.getId());
 
-        buttonId = buttonId.substring(4);
-        int buttonIndex = Integer.parseInt(buttonId);
+        buttonId = buttonId.substring(4);//removes "btn_" from the button id
+
+        int buttonIndex = Integer.parseInt(buttonId);//type casting of the id - from string to integer
 
         column = buttonIndex / 6;
-        row = buttonIndex % 6;//modulo operation gives us the rest of the division
-        //row = buttonIndex - column*6;
+        row = buttonIndex % 6;//modulo operation gives us the rest of the division => the same as : row = buttonIndex - column*6;
 
+        //if a spot is occupied show this alert
         if(board[column][row] != Player.Empty){
             AlertDialog.Builder dlgAlert  = new AlertDialog.Builder(this);
             dlgAlert.setMessage("spot occupied");
@@ -89,51 +98,71 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return;
         }
 
-
+        //drop the token to the last empty spot in the column
         while (row < 5 && board[column][row + 1] == Player.Empty){
             row++;
         }
 
+        //caculates the button index
         buttonIndex = column * 6 + row;
         button = buttons[buttonIndex];
 
 
-
-
-
-
-
-
-
-
-
+        //assignes the text and the spot for the player number 1
         if (activePlayer == Player.One) {
             button.setText("X");
             button.setTextColor(Color.parseColor("#FFC34A"));
             board[column][row] = Player.One;
 
-        } else if (activePlayer == Player.Two) {
+        }
+
+        //assignes the text and the spot for the player number 2
+        else if (activePlayer == Player.Two) {
             button.setText("O");
             button.setTextColor(Color.parseColor("#70FFEA"));
             board[column][row] = Player.Two;
         }
 
+
+        //if one of the winning conditions is realised do this :
         if(checkWinner()){
-            //Toast.makeText(this, "player won !", Toast.LENGTH_SHORT).show();
+            if (activePlayer == Player.One) {
+                playerOneScoreCount++;
+                updatePlayerScore();
 
-            AlertDialog.Builder dlgAlert  = new AlertDialog.Builder(this);
-            dlgAlert.setMessage("a player has won");
-            dlgAlert.setTitle("Game over !!!");
+                AlertDialog.Builder dlgAlert  = new AlertDialog.Builder(this);
+                dlgAlert.setMessage("player one has won");
+                dlgAlert.setTitle("Game over !!!");
 
-            dlgAlert.setPositiveButton("Ok",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            //dismiss the dialog
-                        }
-                    });
+                dlgAlert.setPositiveButton("Ok",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                //dismiss the dialog
+                            }
+                        });
 
-            dlgAlert.setCancelable(true);
-            dlgAlert.create().show();
+                dlgAlert.setCancelable(true);
+                dlgAlert.create().show();
+            }
+
+            else {
+                    playerTwoScoreCount++;
+                    updatePlayerScore();
+
+                    AlertDialog.Builder dlgAlert  = new AlertDialog.Builder(this);
+                    dlgAlert.setMessage(" player two has won");
+                    dlgAlert.setTitle("Game over !!!");
+
+                    dlgAlert.setPositiveButton("Ok",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                //dismiss the dialog
+                            }
+                        });
+
+                    dlgAlert.setCancelable(true);
+                    dlgAlert.create().show();
+            }
 
 
         };
@@ -164,6 +193,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         }
+
         //check for 4 up and down
         for(int col = 0; col < board.length; col++){
             for(int row = 0; row < board[0].length - 3; row++){
@@ -175,6 +205,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         }
+
         //check upward diagonal
         for(int col = 0; col < board.length - 3; col++){
             for(int row = 3; row < board[0].length; row++){
@@ -186,6 +217,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         }
+
         //check downward diagonal
         for(int col = 0; col < board.length - 3; col++){
             for(int row = 0; row < board[0].length - 3; row++){
@@ -198,6 +230,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
         return false;
+    }
+
+    public void updatePlayerScore(){
+        playerOneScore.setText(Integer.toString(playerOneScoreCount));
+        playerTwoScore.setText(Integer.toString(playerTwoScoreCount));
     }
 
 
